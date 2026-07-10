@@ -1,0 +1,5 @@
+cd "C:\Users\deusl\OneDrive\Área de Trabalho\PROGRAMAÇÃO\colhefort\colhefort"
+npx expo start
+
+
+gerar o apk npx eas-cli build -p android --profile preview
