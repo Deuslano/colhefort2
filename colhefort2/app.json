@@ -1,0 +1,42 @@
+{
+  "expo": {
+    "name": "COLHEFORT",
+    "slug": "colhefort",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/images/icon.png",
+    "scheme": "colhefort",
+    "userInterfaceStyle": "automatic",
+    "android": {
+      "package": "com.colhefort.app",
+      "adaptiveIcon": {
+        "backgroundColor": "#2E7D32",
+        "foregroundImage": "./assets/images/android-icon-foreground.png",
+        "backgroundImage": "./assets/images/android-icon-background.png",
+        "monochromeImage": "./assets/images/android-icon-monochrome.png"
+      },
+      "predictiveBackGestureEnabled": false
+    },
+    "web": {
+      "output": "single",
+      "favicon": "./assets/images/favicon.png"
+    },
+    "plugins": [
+      [
+        "expo-splash-screen",
+        {
+          "backgroundColor": "#2E7D32",
+          "android": {
+            "image": "./assets/images/splash-icon.png",
+            "imageWidth": 76
+          }
+        }
+      ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "019fbffd-da30-4256-af61-316e848dde25"
+      }
+    }
+  }
+}
