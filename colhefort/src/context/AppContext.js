@@ -379,17 +379,43 @@ export const AppProvider = ({ children }) => {
     }
 
     // Automatically create accounts receivable entry
-    await addDoc(collection(db, 'accountsReceivable'), {
-      saleId: saleRef.id,
-      clientName: sale.clientName,
-      clientId: sale.clientId,
-      amount: sale.total,
-      dueDate: sale.dueDate || new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(), // Default 30 days
-      status: 'Pendente',
-      description: `Venda #${saleRef.id} - ${sale.items.map(i => i.name).join(', ')}`,
-      createdAt: new Date().toISOString(),
-      userId: currentUser.uid,
-    });
+    // If payment is installment-based, create separate entries for each installment
+    if (sale.paymentType === 'prazo' && sale.installments && sale.installments > 1) {
+      const installmentValue = sale.total / sale.installments;
+      const now = new Date();
+      
+      for (let i = 1; i <= sale.installments; i++) {
+        const dueDate = new Date(now);
+        dueDate.setDate(dueDate.getDate() + (30 * i));
+        
+        await addDoc(collection(db, 'accountsReceivable'), {
+          saleId: saleRef.id,
+          clientName: sale.clientName,
+          clientId: sale.clientId,
+          amount: installmentValue,
+          dueDate: dueDate.toISOString(),
+          status: 'Pendente',
+          description: `Parc. ${i}/${sale.installments} - Venda #${saleRef.id}`,
+          installmentNumber: i,
+          totalInstallments: sale.installments,
+          createdAt: new Date().toISOString(),
+          userId: currentUser.uid,
+        });
+      }
+    } else {
+      // Single payment - create one accounts receivable entry
+      await addDoc(collection(db, 'accountsReceivable'), {
+        saleId: saleRef.id,
+        clientName: sale.clientName,
+        clientId: sale.clientId,
+        amount: sale.total,
+        dueDate: sale.dueDate || new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(), // Default 30 days
+        status: 'Pendente',
+        description: `Venda #${saleRef.id} - ${sale.items.map(i => i.name).join(', ')}`,
+        createdAt: new Date().toISOString(),
+        userId: currentUser.uid,
+      });
+    }
 
     // Automatically create cash flow transaction (income)
     await addDoc(collection(db, 'cashFlowTransactions'), {

@@ -138,6 +138,12 @@ export default function AccountsReceivable() {
             
             <Text style={styles.accountDescription}>{account.description}</Text>
             
+            {account.installmentNumber && (
+              <View style={styles.installmentInfo}>
+                <Text style={styles.installmentBadge}>Parcela {account.installmentNumber} de {account.totalInstallments}</Text>
+              </View>
+            )}
+            
             <View style={styles.accountFooter}>
               <Text style={styles.accountAmount}>R$ {account.amount.toLocaleString('pt-BR', {minimumFractionDigits: 2})}</Text>
               <Icon name="chevron-forward" size={20} color={theme.colors.textLight} />
@@ -321,6 +327,18 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: theme.colors.text,
     marginBottom: 12,
+  },
+  installmentInfo: {
+    marginBottom: 8,
+  },
+  installmentBadge: {
+    fontSize: 12,
+    color: theme.colors.primary,
+    fontWeight: '600',
+    backgroundColor: theme.colors.primary + '15',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 8,
   },
   accountFooter: {
     flexDirection: 'row',
