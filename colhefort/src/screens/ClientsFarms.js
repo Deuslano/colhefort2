@@ -1,5 +1,5 @@
 import React, { useContext, useMemo, useState } from 'react';
-import { View, Text, StyleSheet, FlatList, SafeAreaView, TouchableOpacity, TextInput, Modal } from 'react-native';
+import { View, Text, StyleSheet, FlatList, SafeAreaView, TouchableOpacity, TextInput, Modal, ScrollView, KeyboardAvoidingView, Platform } from 'react-native';
 import { Ionicons as Icon } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { AppContext } from '../context/AppContext';
@@ -188,84 +188,91 @@ export default function ClientsFarms() {
       />
 
       <Modal visible={showModal} transparent animationType="slide">
-        <View style={styles.modalOverlay}>
-          <View style={[styles.modalContent, { backgroundColor: currentTheme.card }]}>
-            <Text style={[styles.modalTitle, { color: currentTheme.text }]}>{editingClient ? 'Editar Cliente' : 'Novo Cliente'}</Text>
-            <View style={styles.inputGroup}>
-              <Text style={[styles.label, { color: currentTheme.textLight }]}>Nome</Text>
-              <TextInput style={[styles.input, { backgroundColor: currentTheme.background, borderColor: currentTheme.border, color: currentTheme.text }]} value={name} onChangeText={setName} placeholder="Nome do cliente" placeholderTextColor={currentTheme.textLight} />
-            </View>
-            <View style={styles.inputGroup}>
-              <Text style={[styles.label, { color: currentTheme.textLight }]}>E-mail {!editingClient && '*'}</Text>
-              <TextInput 
-                style={[styles.input, { backgroundColor: currentTheme.background, borderColor: currentTheme.border, color: currentTheme.text }]} 
-                value={email} 
-                onChangeText={setEmail} 
-                placeholder="E-mail do cliente" 
-                placeholderTextColor={currentTheme.textLight}
-                keyboardType="email-address"
-                autoCapitalize="none"
-                editable={!editingClient}
-              />
-              {!editingClient && <Text style={[styles.hintText, { color: currentTheme.textLight }]}>Uma conta será criada com senha temporária</Text>}
-            </View>
-            <View style={styles.inputGroup}>
-              <Text style={[styles.label, { color: currentTheme.textLight }]}>CPF</Text>
-              <TextInput 
-                style={[styles.input, { backgroundColor: currentTheme.background, borderColor: currentTheme.border, color: currentTheme.text }]} 
-                value={cpf} 
-                onChangeText={(text) => setCpf(maskCpf(text))} 
-                placeholder="000.000.000-00" 
-                keyboardType="numeric"
-                maxLength={14}
-                placeholderTextColor={currentTheme.textLight} 
-              />
-            </View>
-            <View style={styles.inputGroup}>
-              <Text style={[styles.label, { color: currentTheme.textLight }]}>Telefone</Text>
-              <TextInput style={[styles.input, { backgroundColor: currentTheme.background, borderColor: currentTheme.border, color: currentTheme.text }]} value={phone} onChangeText={setPhone} placeholder="(00) 00000-0000" keyboardType="phone-pad" placeholderTextColor={currentTheme.textLight} />
-            </View>
-            <View style={styles.inputGroup}>
-              <Text style={[styles.label, { color: currentTheme.textLight }]}>Fazenda</Text>
-              <TextInput style={[styles.input, { backgroundColor: currentTheme.background, borderColor: currentTheme.border, color: currentTheme.text }]} value={farm} onChangeText={setFarm} placeholder="Nome da fazenda" placeholderTextColor={currentTheme.textLight} />
-            </View>
-            <View style={styles.inputGroup}>
-              <Text style={[styles.label, { color: currentTheme.textLight }]}>Endereço</Text>
-              <TextInput style={[styles.input, { backgroundColor: currentTheme.background, borderColor: currentTheme.border, color: currentTheme.text }]} value={address} onChangeText={setAddress} placeholder="Endereço completo" placeholderTextColor={currentTheme.textLight} />
-            </View>
-            <View style={styles.inputGroup}>
-              <Text style={[styles.label, { color: currentTheme.textLight }]}>CEP</Text>
-              <TextInput 
-                style={[styles.input, { backgroundColor: currentTheme.background, borderColor: currentTheme.border, color: currentTheme.text }]} 
-                value={cep} 
-                onChangeText={(text) => setCep(maskCep(text))} 
-                placeholder="00000-000" 
-                keyboardType="numeric"
-                maxLength={9}
-                placeholderTextColor={currentTheme.textLight} 
-              />
-            </View>
-            <View style={styles.inputGroup}>
-              <Text style={[styles.label, { color: currentTheme.textLight }]}>Observações</Text>
-              <TextInput
-                style={[styles.input, styles.textArea, { backgroundColor: currentTheme.background, borderColor: currentTheme.border, color: currentTheme.text }]}
-                value={notes}
-                onChangeText={setNotes}
-                placeholder="Observações sobre o cliente"
-                multiline
-                placeholderTextColor={currentTheme.textLight}
-              />
-            </View>
-            <View style={styles.modalActions}>
-              <TouchableOpacity style={[styles.cancelBtn, { borderColor: currentTheme.border }]} onPress={closeModal}>
-                <Text style={[styles.cancelBtnText, { color: currentTheme.textLight }]}>Cancelar</Text>
-              </TouchableOpacity>
-              <TouchableOpacity style={[styles.saveBtn, { backgroundColor: currentTheme.primary }]} onPress={handleSave}>
-                <Text style={styles.saveBtnText}>Salvar</Text>
-              </TouchableOpacity>
+        <KeyboardAvoidingView 
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          style={styles.modalOverlay}
+        >
+          <View style={styles.modalOverlay}>
+            <View style={[styles.modalContent, { backgroundColor: currentTheme.card }]}>
+              <Text style={[styles.modalTitle, { color: currentTheme.text }]}>{editingClient ? 'Editar Cliente' : 'Novo Cliente'}</Text>
+              <ScrollView style={styles.modalScrollView} showsVerticalScrollIndicator={true}>
+                <View style={styles.inputGroup}>
+                  <Text style={[styles.label, { color: currentTheme.textLight }]}>Nome</Text>
+                  <TextInput style={[styles.input, { backgroundColor: currentTheme.background, borderColor: currentTheme.border, color: currentTheme.text }]} value={name} onChangeText={setName} placeholder="Nome do cliente" placeholderTextColor={currentTheme.textLight} />
+                </View>
+                <View style={styles.inputGroup}>
+                  <Text style={[styles.label, { color: currentTheme.textLight }]}>E-mail {!editingClient && '*'}</Text>
+                  <TextInput 
+                    style={[styles.input, { backgroundColor: currentTheme.background, borderColor: currentTheme.border, color: currentTheme.text }]} 
+                    value={email} 
+                    onChangeText={setEmail} 
+                    placeholder="E-mail do cliente" 
+                    placeholderTextColor={currentTheme.textLight}
+                    keyboardType="email-address"
+                    autoCapitalize="none"
+                    editable={!editingClient}
+                  />
+                  {!editingClient && <Text style={[styles.hintText, { color: currentTheme.textLight }]}>Uma conta será criada com senha temporária</Text>}
+                </View>
+                <View style={styles.inputGroup}>
+                  <Text style={[styles.label, { color: currentTheme.textLight }]}>CPF</Text>
+                  <TextInput 
+                    style={[styles.input, { backgroundColor: currentTheme.background, borderColor: currentTheme.border, color: currentTheme.text }]} 
+                    value={cpf} 
+                    onChangeText={(text) => setCpf(maskCpf(text))} 
+                    placeholder="000.000.000-00" 
+                    keyboardType="numeric"
+                    maxLength={14}
+                    placeholderTextColor={currentTheme.textLight} 
+                  />
+                </View>
+                <View style={styles.inputGroup}>
+                  <Text style={[styles.label, { color: currentTheme.textLight }]}>Telefone</Text>
+                  <TextInput style={[styles.input, { backgroundColor: currentTheme.background, borderColor: currentTheme.border, color: currentTheme.text }]} value={phone} onChangeText={setPhone} placeholder="(00) 00000-0000" keyboardType="phone-pad" placeholderTextColor={currentTheme.textLight} />
+                </View>
+                <View style={styles.inputGroup}>
+                  <Text style={[styles.label, { color: currentTheme.textLight }]}>Fazenda</Text>
+                  <TextInput style={[styles.input, { backgroundColor: currentTheme.background, borderColor: currentTheme.border, color: currentTheme.text }]} value={farm} onChangeText={setFarm} placeholder="Nome da fazenda" placeholderTextColor={currentTheme.textLight} />
+                </View>
+                <View style={styles.inputGroup}>
+                  <Text style={[styles.label, { color: currentTheme.textLight }]}>Endereço</Text>
+                  <TextInput style={[styles.input, { backgroundColor: currentTheme.background, borderColor: currentTheme.border, color: currentTheme.text }]} value={address} onChangeText={setAddress} placeholder="Endereço completo" placeholderTextColor={currentTheme.textLight} />
+                </View>
+                <View style={styles.inputGroup}>
+                  <Text style={[styles.label, { color: currentTheme.textLight }]}>CEP</Text>
+                  <TextInput 
+                    style={[styles.input, { backgroundColor: currentTheme.background, borderColor: currentTheme.border, color: currentTheme.text }]} 
+                    value={cep} 
+                    onChangeText={(text) => setCep(maskCep(text))} 
+                    placeholder="00000-000" 
+                    keyboardType="numeric"
+                    maxLength={9}
+                    placeholderTextColor={currentTheme.textLight} 
+                  />
+                </View>
+                <View style={styles.inputGroup}>
+                  <Text style={[styles.label, { color: currentTheme.textLight }]}>Observações</Text>
+                  <TextInput
+                    style={[styles.input, styles.textArea, { backgroundColor: currentTheme.background, borderColor: currentTheme.border, color: currentTheme.text }]}
+                    value={notes}
+                    onChangeText={setNotes}
+                    placeholder="Observações sobre o cliente"
+                    multiline
+                    placeholderTextColor={currentTheme.textLight}
+                  />
+                </View>
+              </ScrollView>
+              <View style={styles.modalActions}>
+                <TouchableOpacity style={[styles.cancelBtn, { borderColor: currentTheme.border }]} onPress={closeModal}>
+                  <Text style={[styles.cancelBtnText, { color: currentTheme.textLight }]}>Cancelar</Text>
+                </TouchableOpacity>
+                <TouchableOpacity style={[styles.saveBtn, { backgroundColor: currentTheme.primary }]} onPress={handleSave}>
+                  <Text style={styles.saveBtnText}>Salvar</Text>
+                </TouchableOpacity>
+              </View>
             </View>
           </View>
-        </View>
+        </KeyboardAvoidingView>
       </Modal>
     </SafeAreaView>
   );
@@ -293,7 +300,8 @@ const styles = StyleSheet.create({
   emptyText: { fontSize: 18, fontWeight: 'bold', marginBottom: 8 },
   emptySubtext: { fontSize: 14, textAlign: 'center' },
   modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'flex-end' },
-  modalContent: { borderTopLeftRadius: 24, borderTopRightRadius: 24, padding: 24, paddingBottom: 32 },
+  modalContent: { borderTopLeftRadius: 24, borderTopRightRadius: 24, padding: 24, paddingBottom: 32, maxHeight: '90%' },
+  modalScrollView: { flex: 1, marginBottom: 16 },
   modalTitle: { fontSize: 20, fontWeight: 'bold', marginBottom: 20 },
   inputGroup: { marginBottom: 16 },
   label: { fontSize: 13, marginBottom: 8, fontWeight: '500' },
