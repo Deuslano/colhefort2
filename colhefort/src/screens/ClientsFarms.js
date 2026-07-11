@@ -24,6 +24,7 @@ export default function ClientsFarms() {
       .filter((client) =>
         client.name?.toLowerCase().includes(query) ||
         client.farm?.toLowerCase().includes(query) ||
+        client.farmName?.toLowerCase().includes(query) ||
         client.phone?.includes(query)
       )
       .sort((a, b) => (a.name || '').localeCompare(b.name || ''));
@@ -34,7 +35,7 @@ export default function ClientsFarms() {
       setEditingClient(client);
       setName(client.name || '');
       setPhone(client.phone || '');
-      setFarm(client.farm || '');
+      setFarm(client.farm || client.farmName || '');
       setNotes(client.notes || '');
     } else {
       setEditingClient(null);
@@ -80,7 +81,7 @@ export default function ClientsFarms() {
         </View>
         <View style={styles.textContainer}>
           <Text style={[styles.name, { color: currentTheme.text }]}>{item.name}</Text>
-          <Text style={[styles.subtitle, { color: currentTheme.textLight }]}>{item.farm || 'Fazenda não informada'}</Text>
+          <Text style={[styles.subtitle, { color: currentTheme.textLight }]}>{item.farm || item.farmName || 'Fazenda não informada'}</Text>
           {item.phone ? <Text style={[styles.subtitle, { color: currentTheme.textLight }]}>{item.phone}</Text> : null}
         </View>
       </View>
@@ -95,7 +96,9 @@ export default function ClientsFarms() {
           <Icon name="arrow-back" size={24} color={theme.colors.secondary} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Clientes / Fazendas</Text>
-        <View style={{ width: 40 }} />
+        <TouchableOpacity style={styles.addButton} onPress={() => openModal()}>
+          <Icon name="add" size={24} color={theme.colors.secondary} />
+        </TouchableOpacity>
       </View>
 
       <View style={[styles.searchContainer, { backgroundColor: currentTheme.card, borderColor: currentTheme.border }]}>
