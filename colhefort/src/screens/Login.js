@@ -1,13 +1,15 @@
 import { Ionicons as Icon } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { useContext, useState } from 'react';
-import { ActivityIndicator, Alert, Platform, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, Platform, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { AppContext } from '../context/AppContext';
 import { AppTheme as theme } from '../theme';
+import { useAlert } from '../components/CustomAlert';
 
 export default function Login() {
   const navigation = useNavigation();
   const { login, registerUser, isAuthLoaded, isDarkMode } = useContext(AppContext);
+  const { showAlert } = useAlert();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isRegistering, setIsRegistering] = useState(false);
@@ -40,7 +42,7 @@ export default function Login() {
 
   const handleLogin = async () => {
     if (!email || !password) {
-      Alert.alert('Erro', 'Por favor, preencha todos os campos.');
+      showAlert('Erro', 'Por favor, preencha todos os campos.');
       return;
     }
 
@@ -48,13 +50,13 @@ export default function Login() {
     if (isRegistering) {
       // Validate producer fields
       if (!name.trim() || !cpf.trim() || !farmName.trim() || !farmAddress.trim() || !cep.trim()) {
-        Alert.alert('Erro', 'Por favor, preencha todos os campos obrigatórios.');
+        showAlert('Erro', 'Por favor, preencha todos os campos obrigatórios.');
         setLoading(false);
         return;
       }
 
       if (cpf.replace(/\D/g, '').length !== 11) {
-        Alert.alert('Erro', 'CPF inválido. Digite 11 números.');
+        showAlert('Erro', 'CPF inválido. Digite 11 números.');
         setLoading(false);
         return;
       }
@@ -67,7 +69,7 @@ export default function Login() {
       });
       setLoading(false);
       if (result.success) {
-        Alert.alert('Sucesso', 'Conta criada! Você já pode fazer login.');
+        showAlert('Sucesso', 'Conta criada! Você já pode fazer login.');
         setIsRegistering(false);
         // Clear form
         setName('');
@@ -76,7 +78,7 @@ export default function Login() {
         setFarmAddress('');
         setCep('');
       } else {
-        Alert.alert('Erro', result.error || 'Não foi possível criar a conta.');
+        showAlert('Erro', result.error || 'Não foi possível criar a conta.');
       }
     } else {
       const result = await login(email, password);
@@ -84,7 +86,7 @@ export default function Login() {
       if (result.success) {
         // Navigation is handled automatically by AppNavigator based on auth state
       } else {
-        Alert.alert('Erro', result.error || 'E-mail ou senha inválidos.');
+        showAlert('Erro', result.error || 'E-mail ou senha inválidos.');
       }
     }
   };

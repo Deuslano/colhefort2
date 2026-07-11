@@ -2,9 +2,10 @@ import { Ionicons as Icon } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { useContext, useEffect, useMemo, useState } from 'react';
-import { Alert, FlatList, Image, Modal, SafeAreaView, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { Platform, FlatList, Image, Modal, SafeAreaView, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { AppContext } from '../context/AppContext';
 import { AppTheme as theme } from '../theme';
+import { useAlert } from '../components/CustomAlert';
 import { uploadToCloudinary } from '../utils/cloudinaryService';
 
 const fieldLabels = {
@@ -18,6 +19,7 @@ export default function MachineDetail() {
   const { machines, categories, units, updateMachine, deleteMachine } = useContext(AppContext);
   const navigation = useNavigation();
   const route = useRoute();
+  const { showAlert } = useAlert();
   const routeMachine = route.params?.machine;
 
   const machine = useMemo(
@@ -73,30 +75,55 @@ export default function MachineDetail() {
 
   const pickImage = async () => {
     try {
-      const result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ['images'],
-        allowsEditing: true,
-        aspect: [4, 3],
-        quality: 1,
-      });
+      if (Platform.OS === 'web') {
+        // Web: usar input de arquivo HTML
+        const input = document.createElement('input');
+        input.type = 'file';
+        input.accept = 'image/*';
+        input.onchange = async (e) => {
+          const file = e.target.files[0];
+          if (file) {
+            setUploading(true);
+            try {
+              const uploadResult = await uploadToCloudinary(file, 'samples/ecommerce', 'image');
+              setImage(uploadResult.secure_url);
+              setUploading(false);
+              showAlert('Sucesso', 'Imagem enviada com sucesso!');
+            } catch (error) {
+              console.error('Erro ao enviar imagem:', error);
+              showAlert('Erro', 'Não foi possível enviar a imagem.');
+              setUploading(false);
+            }
+          }
+        };
+        input.click();
+      } else {
+        // Mobile: usar expo-image-picker
+        const result = await ImagePicker.launchImageLibraryAsync({
+          mediaTypes: ['images'],
+          allowsEditing: true,
+          aspect: [4, 3],
+          quality: 1,
+        });
 
-      if (!result.canceled && result.assets && result.assets.length > 0) {
-        setUploading(true);
-        const asset = result.assets[0];
-        const fileUri = asset.uri || asset.localUri;
-        
-        if (!fileUri) {
-          throw new Error('URI do arquivo não encontrada');
+        if (!result.canceled && result.assets && result.assets.length > 0) {
+          setUploading(true);
+          const asset = result.assets[0];
+          const fileUri = asset.uri || asset.localUri;
+          
+          if (!fileUri) {
+            throw new Error('URI do arquivo não encontrada');
+          }
+          
+          const uploadResult = await uploadToCloudinary(fileUri, 'samples/ecommerce', 'image');
+          setImage(uploadResult.secure_url);
+          setUploading(false);
+          showAlert('Sucesso', 'Imagem enviada com sucesso!');
         }
-        
-        const uploadResult = await uploadToCloudinary(fileUri, 'samples/ecommerce', 'image');
-        setImage(uploadResult.secure_url);
-        setUploading(false);
-        Alert.alert('Sucesso', 'Imagem enviada com sucesso!');
       }
     } catch (error) {
       console.error('Erro ao selecionar imagem:', error);
-      Alert.alert('Erro', 'Não foi possível enviar a imagem.');
+      showAlert('Erro', 'Não foi possível enviar a imagem.');
       setUploading(false);
     }
   };
@@ -109,7 +136,7 @@ export default function MachineDetail() {
 
   const handleSave = async () => {
     if (!name.trim()) {
-      Alert.alert('Erro', 'Nome da máquina é obrigatório.');
+      showAlert('Erro', 'Nome da máquina é obrigatório.');
       return;
     }
 
@@ -124,16 +151,16 @@ export default function MachineDetail() {
         categoryName,
         imageUrl: image,
       });
-      Alert.alert('Sucesso', 'Máquina atualizada.');
+      showAlert('Sucesso', 'Máquina atualizada.');
       setEditing(false);
     } catch (error) {
-      Alert.alert('Erro', 'Não foi possível salvar as alterações.');
+      showAlert('Erro', 'Não foi possível salvar as alterações.');
       console.error(error);
     }
   };
 
   const handleDelete = async () => {
-    Alert.alert(
+    showAlert(
       'Confirmar Exclusão',
       'Tem certeza que deseja excluir esta máquina? Esta ação não pode ser desfeita.',
       [
@@ -144,10 +171,10 @@ export default function MachineDetail() {
           onPress: async () => {
             try {
               await deleteMachine(machine.id);
-              Alert.alert('Sucesso', 'Máquina excluída.');
+              showAlert('Sucesso', 'Máquina excluída.');
               navigation.goBack();
             } catch (error) {
-              Alert.alert('Erro', 'Não foi possível excluir a máquina.');
+              showAlert('Erro', 'Não foi possível excluir a máquina.');
               console.error(error);
             }
           },

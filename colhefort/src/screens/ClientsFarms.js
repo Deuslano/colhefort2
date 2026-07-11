@@ -1,13 +1,15 @@
 import React, { useContext, useMemo, useState } from 'react';
-import { View, Text, StyleSheet, FlatList, SafeAreaView, TouchableOpacity, TextInput, Modal, Alert } from 'react-native';
+import { View, Text, StyleSheet, FlatList, SafeAreaView, TouchableOpacity, TextInput, Modal } from 'react-native';
 import { Ionicons as Icon } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { AppContext } from '../context/AppContext';
 import { AppTheme as theme } from '../theme';
+import { useAlert } from '../components/CustomAlert';
 
 export default function ClientsFarms() {
   const navigation = useNavigation();
   const { clients, addClient, updateClient, isDarkMode } = useContext(AppContext);
+  const { showAlert } = useAlert();
   const [search, setSearch] = useState('');
   const [showModal, setShowModal] = useState(false);
   const [editingClient, setEditingClient] = useState(null);
@@ -82,22 +84,22 @@ export default function ClientsFarms() {
 
   const handleSave = async () => {
     if (!name.trim()) {
-      Alert.alert('Erro', 'Nome do cliente é obrigatório.');
+      showAlert('Erro', 'Nome do cliente é obrigatório.');
       return;
     }
 
     if (!editingClient && !email.trim()) {
-      Alert.alert('Erro', 'E-mail do cliente é obrigatório para cadastro.');
+      showAlert('Erro', 'E-mail do cliente é obrigatório para cadastro.');
       return;
     }
 
     if (cpf && cpf.replace(/\D/g, '').length !== 11) {
-      Alert.alert('Erro', 'CPF inválido. Digite 11 números.');
+      showAlert('Erro', 'CPF inválido. Digite 11 números.');
       return;
     }
 
     if (cep && cep.replace(/\D/g, '').length !== 8) {
-      Alert.alert('Erro', 'CEP inválido. Digite 8 números.');
+      showAlert('Erro', 'CEP inválido. Digite 8 números.');
       return;
     }
 
@@ -120,7 +122,7 @@ export default function ClientsFarms() {
       }
       closeModal();
     } catch (error) {
-      Alert.alert('Erro', 'Não foi possível salvar o cliente.');
+      showAlert('Erro', 'Não foi possível salvar o cliente.');
       console.error(error);
     }
   };

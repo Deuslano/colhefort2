@@ -1,9 +1,10 @@
 import { Ionicons as Icon } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { useContext, useMemo, useState } from 'react';
-import { Alert, FlatList, Modal, SafeAreaView, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { FlatList, Modal, SafeAreaView, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { AppContext } from '../context/AppContext';
 import { AppTheme as theme } from '../theme';
+import { useAlert } from '../components/CustomAlert';
 import { maskDate, maskCurrency, currencyToNumber } from '../utils/masks';
 
 const pickerLabels = {
@@ -15,6 +16,7 @@ const pickerLabels = {
 export default function NewAllocation() {
   const navigation = useNavigation();
   const { machines, clients, addAllocation, updateMachine } = useContext(AppContext);
+  const { showAlert } = useAlert();
 
   const [selectedMachineId, setSelectedMachineId] = useState('');
   const [selectedMachineName, setSelectedMachineName] = useState('');
@@ -122,14 +124,14 @@ export default function NewAllocation() {
 
   const handleSave = async () => {
     if (!selectedMachineId || !selectedClientId || !startDate || !endDate || !serviceType.trim() || !rentalValue.trim()) {
-      Alert.alert('Erro', 'Selecione máquina, cliente, período, tipo de serviço e valor do aluguel.');
+      showAlert('Erro', 'Selecione máquina, cliente, período, tipo de serviço e valor do aluguel.');
       return;
     }
 
     const normalizedValue = Number(String(rentalValue).replace(/\./g, '').replace(',', '.'));
     
     if (Number.isNaN(normalizedValue) || normalizedValue <= 0) {
-      Alert.alert('Erro', 'Informe um valor de aluguel válido.');
+      showAlert('Erro', 'Informe um valor de aluguel válido.');
       return;
     }
 
@@ -154,11 +156,11 @@ export default function NewAllocation() {
         createdAt: new Date().toISOString(),
       });
 
-      Alert.alert('Sucesso', 'Alocação salva com sucesso!');
+      showAlert('Sucesso', 'Alocação salva com sucesso!');
       navigation.goBack();
     } catch (error) {
       console.error('Erro ao salvar alocação:', error);
-      Alert.alert('Erro', `Não foi possível salvar a alocação: ${error.message}`);
+      showAlert('Erro', `Não foi possível salvar a alocação: ${error.message}`);
     }
   };
 

@@ -1,14 +1,16 @@
 import { Ionicons as Icon } from '@expo/vector-icons';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { useContext, useState } from 'react';
-import { Alert, SafeAreaView, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { SafeAreaView, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { AppContext } from '../context/AppContext';
 import { AppTheme as theme } from '../theme';
+import { useAlert } from '../components/CustomAlert';
 
 export default function AllocationDetail() {
   const navigation = useNavigation();
   const route = useRoute();
   const { machines, clients, updateAllocation, deleteAllocation, updateMachine, serviceOrders, updateServiceOrder } = useContext(AppContext);
+  const { showAlert } = useAlert();
   const allocation = route.params?.allocation;
   const [editing, setEditing] = useState(false);
   const [status, setStatus] = useState(allocation?.status || 'Em andamento');
@@ -42,16 +44,16 @@ export default function AllocationDetail() {
         });
       }
 
-      Alert.alert('Sucesso', 'Alocação atualizada.');
+      showAlert('Sucesso', 'Alocação atualizada.');
       setEditing(false);
     } catch (error) {
-      Alert.alert('Erro', 'Não foi possível atualizar a alocação.');
+      showAlert('Erro', 'Não foi possível atualizar a alocação.');
       console.error(error);
     }
   };
 
   const handleDelete = async () => {
-    Alert.alert(
+    showAlert(
       'Confirmar Exclusão',
       'Tem certeza que deseja excluir esta alocação? Esta ação não pode ser desfeita.',
       [
@@ -71,10 +73,10 @@ export default function AllocationDetail() {
                   clientName: '',
                 });
               }
-              Alert.alert('Sucesso', 'Alocação excluída.');
+              showAlert('Sucesso', 'Alocação excluída.');
               navigation.goBack();
             } catch (error) {
-              Alert.alert('Erro', 'Não foi possível excluir a alocação.');
+              showAlert('Erro', 'Não foi possível excluir a alocação.');
               console.error(error);
             }
           },
@@ -129,9 +131,9 @@ export default function AllocationDetail() {
         });
       }
 
-      Alert.alert('Sucesso', 'Serviço iniciado!');
+      showAlert('Sucesso', 'Serviço iniciado!');
     } catch (error) {
-      Alert.alert('Erro', 'Não foi possível iniciar o serviço.');
+      showAlert('Erro', 'Não foi possível iniciar o serviço.');
       console.error(error);
     }
   };
@@ -168,9 +170,9 @@ export default function AllocationDetail() {
         });
       }
 
-      Alert.alert('Sucesso', 'Serviço concluído!');
+      showAlert('Sucesso', 'Serviço concluído!');
     } catch (error) {
-      Alert.alert('Erro', 'Não foi possível concluir o serviço.');
+      showAlert('Erro', 'Não foi possível concluir o serviço.');
       console.error(error);
     }
   };

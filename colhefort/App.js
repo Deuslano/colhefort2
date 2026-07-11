@@ -6,6 +6,7 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { AppProvider } from './src/context/AppContext';
 import AppNavigator from './src/navigation/AppNavigator';
+import { AlertProvider } from './src/components/CustomAlert';
 
 class ErrorBoundary extends React.Component {
   constructor(props) {
@@ -42,9 +43,11 @@ export default function App() {
       <GestureHandlerRootView style={{ flex: 1 }}>
         <SafeAreaProvider style={{ flex: 1 }}>
           <AppProvider>
-            <NavigationContainer>
-              <AppNavigator />
-            </NavigationContainer>
+            <AlertProvider>
+              <NavigationContainer>
+                <AppNavigator />
+              </NavigationContainer>
+            </AlertProvider>
           </AppProvider>
         </SafeAreaProvider>
       </GestureHandlerRootView>

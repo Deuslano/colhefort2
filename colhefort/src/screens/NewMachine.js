@@ -2,9 +2,10 @@ import { Ionicons as Icon } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 import { useNavigation } from '@react-navigation/native';
 import { useContext, useMemo, useState } from 'react';
-import { Alert, FlatList, Image, KeyboardAvoidingView, Modal, Platform, SafeAreaView, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { FlatList, Image, KeyboardAvoidingView, Modal, Platform, SafeAreaView, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { AppContext } from '../context/AppContext';
 import { AppTheme as theme } from '../theme';
+import { useAlert } from '../components/CustomAlert';
 import { uploadToCloudinary } from '../utils/cloudinaryService';
 
 const fieldLabels = {
@@ -17,6 +18,7 @@ const statuses = ['Disponível', 'Em andamento', 'Agendado'];
 export default function NewMachine() {
   const navigation = useNavigation();
   const { categories, units, addMachine } = useContext(AppContext);
+  const { showAlert } = useAlert();
 
   const [name, setName] = useState('');
   const [model, setModel] = useState('');
@@ -43,30 +45,55 @@ export default function NewMachine() {
 
   const pickImage = async () => {
     try {
-      const result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ['images'],
-        allowsEditing: true,
-        aspect: [4, 3],
-        quality: 1,
-      });
+      if (Platform.OS === 'web') {
+        // Web: usar input de arquivo HTML
+        const input = document.createElement('input');
+        input.type = 'file';
+        input.accept = 'image/*';
+        input.onchange = async (e) => {
+          const file = e.target.files[0];
+          if (file) {
+            setUploading(true);
+            try {
+              const uploadResult = await uploadToCloudinary(file, 'samples/ecommerce', 'image');
+              setImage(uploadResult.secure_url);
+              setUploading(false);
+              showAlert('Sucesso', 'Imagem enviada com sucesso!');
+            } catch (error) {
+              console.error('Erro ao enviar imagem:', error);
+              showAlert('Erro', 'Não foi possível enviar a imagem.');
+              setUploading(false);
+            }
+          }
+        };
+        input.click();
+      } else {
+        // Mobile: usar expo-image-picker
+        const result = await ImagePicker.launchImageLibraryAsync({
+          mediaTypes: ['images'],
+          allowsEditing: true,
+          aspect: [4, 3],
+          quality: 1,
+        });
 
-      if (!result.canceled && result.assets && result.assets.length > 0) {
-        setUploading(true);
-        const asset = result.assets[0];
-        const fileUri = asset.uri || asset.localUri;
-        
-        if (!fileUri) {
-          throw new Error('URI do arquivo não encontrada');
+        if (!result.canceled && result.assets && result.assets.length > 0) {
+          setUploading(true);
+          const asset = result.assets[0];
+          const fileUri = asset.uri || asset.localUri;
+          
+          if (!fileUri) {
+            throw new Error('URI do arquivo não encontrada');
+          }
+          
+          const uploadResult = await uploadToCloudinary(fileUri, 'samples/ecommerce', 'image');
+          setImage(uploadResult.secure_url);
+          setUploading(false);
+          showAlert('Sucesso', 'Imagem enviada com sucesso!');
         }
-        
-        const uploadResult = await uploadToCloudinary(fileUri, 'samples/ecommerce', 'image');
-        setImage(uploadResult.secure_url);
-        setUploading(false);
-        Alert.alert('Sucesso', 'Imagem enviada com sucesso!');
       }
     } catch (error) {
       console.error('Erro ao selecionar imagem:', error);
-      Alert.alert('Erro', 'Não foi possível enviar a imagem.');
+      showAlert('Erro', 'Não foi possível enviar a imagem.');
       setUploading(false);
     }
   };
@@ -83,7 +110,7 @@ export default function NewMachine() {
 
   const handleSave = () => {
     if (!name.trim() || !model.trim()) {
-      Alert.alert('Erro', 'Preencha nome e modelo da máquina.');
+      showAlert('Erro', 'Preencha nome e modelo da máquina.');
       return;
     }
 
@@ -98,7 +125,7 @@ export default function NewMachine() {
       createdAt: new Date().toISOString(),
     });
 
-    Alert.alert('Sucesso', 'Máquina cadastrada!');
+    showAlert('Sucesso', 'Máquina cadastrada!');
     navigation.goBack();
   };
 

@@ -1,29 +1,25 @@
 import { Ionicons as Icon } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { useContext } from 'react';
-import { Alert, Platform, SafeAreaView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { SafeAreaView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { AppContext } from '../context/AppContext';
 import { AppTheme as theme } from '../theme';
+import { useAlert } from '../components/CustomAlert';
 
 export default function Profile() {
   const { currentUser, logout } = useContext(AppContext);
   const navigation = useNavigation();
+  const { showAlert } = useAlert();
 
   const handleLogout = () => {
-    if (Platform.OS === 'web') {
-      if (window.confirm('Tem certeza que deseja sair do aplicativo?')) {
-        logout();
+    showAlert('Sair da Conta', 'Tem certeza que deseja sair do aplicativo?', [
+      { text: 'Cancelar', style: 'cancel' },
+      { 
+        text: 'Sair', 
+        style: 'destructive', 
+        onPress: () => logout()
       }
-    } else {
-      Alert.alert('Sair da Conta', 'Tem certeza que deseja sair do aplicativo?', [
-        { text: 'Cancelar', style: 'cancel' },
-        { 
-          text: 'Sair', 
-          style: 'destructive', 
-          onPress: () => logout()
-        }
-      ]);
-    }
+    ]);
   };
 
   return (

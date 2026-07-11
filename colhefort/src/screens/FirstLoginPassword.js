@@ -1,9 +1,10 @@
 import React, { useContext, useState } from 'react';
-import { View, Text, StyleSheet, TextInput, TouchableOpacity, Alert, ActivityIndicator, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, TextInput, TouchableOpacity, ActivityIndicator, ScrollView } from 'react-native';
 import { Ionicons as Icon } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { AppContext } from '../context/AppContext';
 import { AppTheme as theme } from '../theme';
+import { useAlert } from '../components/CustomAlert';
 import { updatePassword } from 'firebase/auth';
 import { updateDoc, doc, getDoc } from 'firebase/firestore';
 import { auth, db } from '../config/firebaseConfig';
@@ -11,6 +12,7 @@ import { auth, db } from '../config/firebaseConfig';
 export default function FirstLoginPassword() {
   const navigation = useNavigation();
   const { currentUser, isDarkMode } = useContext(AppContext);
+  const { showAlert } = useAlert();
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [loading, setLoading] = useState(false);
@@ -19,17 +21,17 @@ export default function FirstLoginPassword() {
 
   const handlePasswordChange = async () => {
     if (!newPassword.trim() || !confirmPassword.trim()) {
-      Alert.alert('Erro', 'Por favor, preencha todos os campos.');
+      showAlert('Erro', 'Por favor, preencha todos os campos.');
       return;
     }
 
     if (newPassword.length < 6) {
-      Alert.alert('Erro', 'A senha deve ter no mínimo 6 caracteres.');
+      showAlert('Erro', 'A senha deve ter no mínimo 6 caracteres.');
       return;
     }
 
     if (newPassword !== confirmPassword) {
-      Alert.alert('Erro', 'As senhas não coincidem.');
+      showAlert('Erro', 'As senhas não coincidem.');
       return;
     }
 
@@ -47,13 +49,13 @@ export default function FirstLoginPassword() {
         });
       }
 
-      Alert.alert(
+      showAlert(
         'Sucesso',
         'Senha alterada com sucesso! Você já pode acessar o sistema.',
         [{ text: 'OK', onPress: () => navigation.replace('Home') }]
       );
     } catch (error) {
-      Alert.alert('Erro', 'Não foi possível alterar a senha. Tente novamente.');
+      showAlert('Erro', 'Não foi possível alterar a senha. Tente novamente.');
       console.error('Erro ao alterar senha:', error);
     } finally {
       setLoading(false);
