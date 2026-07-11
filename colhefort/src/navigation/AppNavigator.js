@@ -16,6 +16,7 @@ import Dashboard from '../screens/Dashboard';
 import Expenses from '../screens/Expenses';
 import FinancialReports from '../screens/FinancialReports';
 import FinancialSummary from '../screens/FinancialSummary';
+import FirstLoginPassword from '../screens/FirstLoginPassword';
 import Login from '../screens/Login';
 import MachineDetail from '../screens/MachineDetail';
 import Machines from '../screens/Machines';
@@ -71,13 +72,17 @@ function MainTabs() {
 }
 
 export default function AppNavigator() {
-  const { currentUser, userRole } = useContext(AppContext);
+  const { currentUser, userRole, isFirstLogin } = useContext(AppContext);
 
   return (
     <Stack.Navigator screenOptions={{ headerShown: false }}>
       {currentUser ? (
         <Stack.Group>
-          <Stack.Screen name="Main" component={MainTabs} />
+          {isFirstLogin ? (
+            <Stack.Screen name="FirstLoginPassword" component={FirstLoginPassword} />
+          ) : (
+            <Stack.Screen name="Main" component={MainTabs} />
+          )}
           
           {/* Screens available for all authenticated users */}
           <Stack.Screen name="Profile" component={Profile} />

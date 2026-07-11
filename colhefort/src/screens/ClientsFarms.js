@@ -12,6 +12,7 @@ export default function ClientsFarms() {
   const [showModal, setShowModal] = useState(false);
   const [editingClient, setEditingClient] = useState(null);
   const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
   const [farm, setFarm] = useState('');
   const [notes, setNotes] = useState('');
@@ -34,12 +35,14 @@ export default function ClientsFarms() {
     if (client) {
       setEditingClient(client);
       setName(client.name || '');
+      setEmail(client.email || '');
       setPhone(client.phone || '');
       setFarm(client.farm || client.farmName || '');
       setNotes(client.notes || '');
     } else {
       setEditingClient(null);
       setName('');
+      setEmail('');
       setPhone('');
       setFarm('');
       setNotes('');
@@ -58,7 +61,12 @@ export default function ClientsFarms() {
       return;
     }
 
-    const clientData = { name: name.trim(), phone: phone.trim(), farm: farm.trim(), notes: notes.trim() };
+    if (!editingClient && !email.trim()) {
+      Alert.alert('Erro', 'E-mail do cliente é obrigatório para cadastro.');
+      return;
+    }
+
+    const clientData = { name: name.trim(), email: email.trim(), phone: phone.trim(), farm: farm.trim(), notes: notes.trim() };
 
     try {
       if (editingClient) {
@@ -142,6 +150,20 @@ export default function ClientsFarms() {
               <TextInput style={[styles.input, { backgroundColor: currentTheme.background, borderColor: currentTheme.border, color: currentTheme.text }]} value={name} onChangeText={setName} placeholder="Nome do cliente" placeholderTextColor={currentTheme.textLight} />
             </View>
             <View style={styles.inputGroup}>
+              <Text style={[styles.label, { color: currentTheme.textLight }]}>E-mail {!editingClient && '*'}</Text>
+              <TextInput 
+                style={[styles.input, { backgroundColor: currentTheme.background, borderColor: currentTheme.border, color: currentTheme.text }]} 
+                value={email} 
+                onChangeText={setEmail} 
+                placeholder="E-mail do cliente" 
+                placeholderTextColor={currentTheme.textLight}
+                keyboardType="email-address"
+                autoCapitalize="none"
+                editable={!editingClient}
+              />
+              {!editingClient && <Text style={[styles.hintText, { color: currentTheme.textLight }]}>Uma conta será criada com senha temporária</Text>}
+            </View>
+            <View style={styles.inputGroup}>
               <Text style={[styles.label, { color: currentTheme.textLight }]}>Fazenda</Text>
               <TextInput style={[styles.input, { backgroundColor: currentTheme.background, borderColor: currentTheme.border, color: currentTheme.text }]} value={farm} onChangeText={setFarm} placeholder="Nome da fazenda" placeholderTextColor={currentTheme.textLight} />
             </View>
@@ -203,6 +225,7 @@ const styles = StyleSheet.create({
   label: { fontSize: 13, marginBottom: 8, fontWeight: '500' },
   input: { borderWidth: 1, borderRadius: 12, paddingHorizontal: 16, height: 50, fontSize: 15 },
   textArea: { height: 100, textAlignVertical: 'top', paddingTop: 14 },
+  hintText: { fontSize: 11, marginTop: 4, fontStyle: 'italic' },
   modalActions: { flexDirection: 'row', justifyContent: 'space-between', marginTop: 8 },
   cancelBtn: { flex: 1, marginRight: 12, borderRadius: 12, borderWidth: 1, alignItems: 'center', paddingVertical: 14 },
   cancelBtnText: { fontWeight: '600' },

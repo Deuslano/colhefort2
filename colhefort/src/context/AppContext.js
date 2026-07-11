@@ -1,5 +1,5 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { createUserWithEmailAndPassword, onAuthStateChanged, signInWithEmailAndPassword, signOut, updateProfile } from 'firebase/auth';
+import { createUserWithEmailAndPassword, onAuthStateChanged, signInWithEmailAndPassword, signOut, updateProfile, updatePassword } from 'firebase/auth';
 import { addDoc, collection, deleteDoc, doc, getDoc, getDocs, onSnapshot, query, setDoc, updateDoc, where } from 'firebase/firestore';
 import { createContext, useEffect, useRef, useState } from 'react';
 import { auth, db } from '../config/firebaseConfig';
@@ -26,6 +26,7 @@ export const AppProvider = ({ children }) => {
   const [currentUser, setCurrentUser] = useState(null);
   const [userRole, setUserRole] = useState(null);
   const [isAuthLoaded, setIsAuthLoaded] = useState(false);
+  const [isFirstLogin, setIsFirstLogin] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [accountsReceivable, setAccountsReceivable] = useState([]);
   const [cashFlowTransactions, setCashFlowTransactions] = useState([]);
@@ -97,28 +98,34 @@ export const AppProvider = ({ children }) => {
           const userDoc = await getDoc(doc(db, 'users', user.uid));
           if (userDoc.exists()) {
             setUserRole(userDoc.data().role || 'producer');
+            setIsFirstLogin(userDoc.data().isFirstLogin || false);
           } else {
             // If user doc doesn't exist, check if it's the admin email
             if (user.email === 'colhefort@gmail.com') {
               setUserRole('admin');
+              setIsFirstLogin(false);
               // Create the user doc
               await setDoc(doc(db, 'users', user.uid), {
                 uid: user.uid,
                 email: user.email,
                 role: 'admin',
                 name: 'Administrador',
+                isFirstLogin: false,
                 createdAt: new Date().toISOString(),
               });
             } else {
               setUserRole('producer');
+              setIsFirstLogin(false);
             }
           }
         } catch (error) {
           console.error('Error fetching user role:', error);
           setUserRole('producer');
+          setIsFirstLogin(false);
         }
       } else {
         setUserRole(null);
+        setIsFirstLogin(false);
       }
       setIsAuthLoaded(true);
     });
@@ -208,7 +215,9 @@ export const AppProvider = ({ children }) => {
       (error) => handleSnapshotError('invoices', error)
     );
     const unsubClients = onSnapshot(
-      query(collection(db, 'clients'), where('userId', '==', currentUser.uid)),
+      userRole === 'admin' || userRole === 'manager' 
+        ? collection(db, 'clients')
+        : query(collection(db, 'clients'), where('userId', '==', currentUser.uid)),
       (snapshot) => {
         setClients(snapshot.docs.map(doc => ({ ...doc.data(), id: doc.id })));
       },
@@ -484,6 +493,34 @@ export const AppProvider = ({ children }) => {
   };
 
   const addClient = async (client) => {
+    // Se o cliente tiver e-mail, criar usuário no Firebase Auth com senha temporária
+    if (client.email) {
+      try {
+        const tempPassword = 'Temp123456'; // Senha temporária
+        const userCredential = await createUserWithEmailAndPassword(auth, client.email, tempPassword);
+        
+        // Criar documento de usuário com flag de primeiro acesso
+        await setDoc(doc(db, 'users', userCredential.user.uid), {
+          uid: userCredential.user.uid,
+          email: client.email,
+          role: 'producer',
+          name: client.name,
+          isFirstLogin: true, // Flag para indicar primeiro acesso
+          createdAt: new Date().toISOString(),
+        });
+
+        // Atualizar o client data com o userId do novo usuário
+        client.userId = userCredential.user.uid;
+        client.hasAccount = true;
+      } catch (error) {
+        console.error('Erro ao criar usuário para cliente:', error);
+        // Se o usuário já existir, apenas continuar com o cadastro do cliente
+        if (error.code !== 'auth/email-already-in-use') {
+          throw error;
+        }
+      }
+    }
+    
     await addDoc(collection(db, 'clients'), { ...client, userId: currentUser.uid });
   };
 
@@ -942,7 +979,7 @@ export const AppProvider = ({ children }) => {
   return (
     <AppContext.Provider value={{
       // Firebase Auth
-      currentUser, userRole, isAuthLoaded, login, logout, registerUser, currentUserDisplayName,
+      currentUser, userRole, isAuthLoaded, isFirstLogin, login, logout, registerUser, currentUserDisplayName,
       // Dark Mode
       isDarkMode, toggleDarkMode,
       // Legacy Auth (for backward compatibility)
