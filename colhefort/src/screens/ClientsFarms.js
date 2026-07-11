@@ -13,11 +13,30 @@ export default function ClientsFarms() {
   const [editingClient, setEditingClient] = useState(null);
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
+  const [cpf, setCpf] = useState('');
   const [phone, setPhone] = useState('');
   const [farm, setFarm] = useState('');
+  const [address, setAddress] = useState('');
+  const [cep, setCep] = useState('');
   const [notes, setNotes] = useState('');
 
   const currentTheme = isDarkMode ? theme.dark : theme.colors;
+
+  const maskCpf = (value) => {
+    return value
+      .replace(/\D/g, '')
+      .replace(/(\d{3})(\d)/, '$1.$2')
+      .replace(/(\d{3})(\d)/, '$1.$2')
+      .replace(/(\d{3})(\d{1,2})/, '$1-$2')
+      .replace(/(-\d{2})\d+?$/, '$1');
+  };
+
+  const maskCep = (value) => {
+    return value
+      .replace(/\D/g, '')
+      .replace(/(\d{5})(\d)/, '$1-$2')
+      .replace(/(-\d{3})\d+?$/, '$1');
+  };
 
   const filteredClients = useMemo(() => {
     const query = search.toLowerCase();
@@ -36,15 +55,21 @@ export default function ClientsFarms() {
       setEditingClient(client);
       setName(client.name || '');
       setEmail(client.email || '');
+      setCpf(client.cpf || '');
       setPhone(client.phone || '');
       setFarm(client.farm || client.farmName || '');
+      setAddress(client.address || '');
+      setCep(client.cep || '');
       setNotes(client.notes || '');
     } else {
       setEditingClient(null);
       setName('');
       setEmail('');
+      setCpf('');
       setPhone('');
       setFarm('');
+      setAddress('');
+      setCep('');
       setNotes('');
     }
     setShowModal(true);
@@ -66,7 +91,26 @@ export default function ClientsFarms() {
       return;
     }
 
-    const clientData = { name: name.trim(), email: email.trim(), phone: phone.trim(), farm: farm.trim(), notes: notes.trim() };
+    if (cpf && cpf.replace(/\D/g, '').length !== 11) {
+      Alert.alert('Erro', 'CPF inválido. Digite 11 números.');
+      return;
+    }
+
+    if (cep && cep.replace(/\D/g, '').length !== 8) {
+      Alert.alert('Erro', 'CEP inválido. Digite 8 números.');
+      return;
+    }
+
+    const clientData = {
+      name: name.trim(),
+      email: email.trim(),
+      cpf: cpf.trim(),
+      phone: phone.trim(),
+      farm: farm.trim(),
+      address: address.trim(),
+      cep: cep.trim(),
+      notes: notes.trim()
+    };
 
     try {
       if (editingClient) {
@@ -164,12 +208,40 @@ export default function ClientsFarms() {
               {!editingClient && <Text style={[styles.hintText, { color: currentTheme.textLight }]}>Uma conta será criada com senha temporária</Text>}
             </View>
             <View style={styles.inputGroup}>
-              <Text style={[styles.label, { color: currentTheme.textLight }]}>Fazenda</Text>
-              <TextInput style={[styles.input, { backgroundColor: currentTheme.background, borderColor: currentTheme.border, color: currentTheme.text }]} value={farm} onChangeText={setFarm} placeholder="Nome da fazenda" placeholderTextColor={currentTheme.textLight} />
+              <Text style={[styles.label, { color: currentTheme.textLight }]}>CPF</Text>
+              <TextInput 
+                style={[styles.input, { backgroundColor: currentTheme.background, borderColor: currentTheme.border, color: currentTheme.text }]} 
+                value={cpf} 
+                onChangeText={(text) => setCpf(maskCpf(text))} 
+                placeholder="000.000.000-00" 
+                keyboardType="numeric"
+                maxLength={14}
+                placeholderTextColor={currentTheme.textLight} 
+              />
             </View>
             <View style={styles.inputGroup}>
               <Text style={[styles.label, { color: currentTheme.textLight }]}>Telefone</Text>
               <TextInput style={[styles.input, { backgroundColor: currentTheme.background, borderColor: currentTheme.border, color: currentTheme.text }]} value={phone} onChangeText={setPhone} placeholder="(00) 00000-0000" keyboardType="phone-pad" placeholderTextColor={currentTheme.textLight} />
+            </View>
+            <View style={styles.inputGroup}>
+              <Text style={[styles.label, { color: currentTheme.textLight }]}>Fazenda</Text>
+              <TextInput style={[styles.input, { backgroundColor: currentTheme.background, borderColor: currentTheme.border, color: currentTheme.text }]} value={farm} onChangeText={setFarm} placeholder="Nome da fazenda" placeholderTextColor={currentTheme.textLight} />
+            </View>
+            <View style={styles.inputGroup}>
+              <Text style={[styles.label, { color: currentTheme.textLight }]}>Endereço</Text>
+              <TextInput style={[styles.input, { backgroundColor: currentTheme.background, borderColor: currentTheme.border, color: currentTheme.text }]} value={address} onChangeText={setAddress} placeholder="Endereço completo" placeholderTextColor={currentTheme.textLight} />
+            </View>
+            <View style={styles.inputGroup}>
+              <Text style={[styles.label, { color: currentTheme.textLight }]}>CEP</Text>
+              <TextInput 
+                style={[styles.input, { backgroundColor: currentTheme.background, borderColor: currentTheme.border, color: currentTheme.text }]} 
+                value={cep} 
+                onChangeText={(text) => setCep(maskCep(text))} 
+                placeholder="00000-000" 
+                keyboardType="numeric"
+                maxLength={9}
+                placeholderTextColor={currentTheme.textLight} 
+              />
             </View>
             <View style={styles.inputGroup}>
               <Text style={[styles.label, { color: currentTheme.textLight }]}>Observações</Text>

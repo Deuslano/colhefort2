@@ -505,6 +505,11 @@ export const AppProvider = ({ children }) => {
           email: client.email,
           role: 'producer',
           name: client.name,
+          cpf: client.cpf || '',
+          farm: client.farm || '',
+          address: client.address || '',
+          cep: client.cep || '',
+          phone: client.phone || '',
           isFirstLogin: true, // Flag para indicar primeiro acesso
           createdAt: new Date().toISOString(),
         });
