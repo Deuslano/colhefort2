@@ -276,6 +276,31 @@ export default function AccountsReceivable() {
                   <Text style={styles.installmentHint}>
                     Todas as parcelas vencerão neste dia do mês
                   </Text>
+                  
+                  {fixedPaymentDay && date && installments && parseInt(installments) > 0 && (
+                    <View style={styles.installmentPreviewContainer}>
+                      <Text style={styles.installmentPreviewTitle}>Previsão de vencimentos:</Text>
+                      {(() => {
+                        const paymentDay = parseInt(fixedPaymentDay);
+                        const dateParts = date.split('/');
+                        const baseDate = new Date(dateParts[2], dateParts[1] - 1, dateParts[0]);
+                        const installmentsNum = parseInt(installments);
+                        const dates = [];
+                        
+                        for (let i = 1; i <= installmentsNum; i++) {
+                          const dueDate = new Date(baseDate);
+                          dueDate.setMonth(dueDate.getMonth() + (i - 1));
+                          dueDate.setDate(Math.min(paymentDay, new Date(dueDate.getFullYear(), dueDate.getMonth() + 1, 0).getDate()));
+                          const formattedDate = `${String(dueDate.getDate()).padStart(2, '0')}/${String(dueDate.getMonth() + 1).padStart(2, '0')}/${dueDate.getFullYear()}`;
+                          dates.push(`Parc. ${i}: ${formattedDate}`);
+                        }
+                        
+                        return dates.map((d, idx) => (
+                          <Text key={idx} style={styles.installmentPreviewItem}>{d}</Text>
+                        ));
+                      })()}
+                    </View>
+                  )}
                 </View>
               )}
               
@@ -587,6 +612,25 @@ const styles = StyleSheet.create({
     fontStyle: 'italic',
     marginTop: 4,
     textAlign: 'center',
+  },
+  installmentPreviewContainer: {
+    marginTop: 12,
+    padding: 10,
+    backgroundColor: '#F0F4F8',
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: theme.colors.border,
+  },
+  installmentPreviewTitle: {
+    fontSize: 12,
+    fontWeight: 'bold',
+    color: theme.colors.text,
+    marginBottom: 6,
+  },
+  installmentPreviewItem: {
+    fontSize: 11,
+    color: theme.colors.textLight,
+    marginBottom: 2,
   },
   modalActions: {
     flexDirection: 'row',
