@@ -386,13 +386,16 @@ export const AppProvider = ({ children }) => {
       
       for (let i = 1; i <= sale.installments; i++) {
         const dueDate = new Date(now);
-        dueDate.setDate(dueDate.getDate() + (30 * i));
+        dueDate.setMonth(dueDate.getMonth() + (i - 1));
+        
+        const formattedDate = `${String(dueDate.getDate()).padStart(2, '0')}/${String(dueDate.getMonth() + 1).padStart(2, '0')}/${dueDate.getFullYear()}`;
         
         await addDoc(collection(db, 'accountsReceivable'), {
           saleId: saleRef.id,
           clientName: sale.clientName,
           clientId: sale.clientId,
           amount: installmentValue,
+          date: formattedDate,
           dueDate: dueDate.toISOString(),
           status: 'Pendente',
           description: `Parc. ${i}/${sale.installments} - Venda #${saleRef.id}`,

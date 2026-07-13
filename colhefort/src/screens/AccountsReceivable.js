@@ -176,6 +176,13 @@ export default function AccountsReceivable() {
               </View>
             )}
             
+            {account.status === 'Recebido' && account.paymentDate && (
+              <View style={styles.paymentDateContainer}>
+                <Icon name="checkmark-circle" size={14} color={theme.colors.success} />
+                <Text style={styles.paymentDateText}>Pago em: {account.paymentDate}</Text>
+              </View>
+            )}
+            
             <View style={styles.accountFooter}>
               <Text style={styles.accountAmount}>R$ {account.amount.toLocaleString('pt-BR', {minimumFractionDigits: 2})}</Text>
               <Icon name="chevron-forward" size={20} color={theme.colors.textLight} />
@@ -407,6 +414,18 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 8,
+  },
+  paymentDateContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 8,
+    marginBottom: 8,
+  },
+  paymentDateText: {
+    fontSize: 12,
+    color: theme.colors.success,
+    fontWeight: '600',
+    marginLeft: 6,
   },
   accountFooter: {
     flexDirection: 'row',
