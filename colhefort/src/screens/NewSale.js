@@ -14,6 +14,7 @@ export default function NewSale() {
   
   const [paymentType, setPaymentType] = useState('avista');
   const [installments, setInstallments] = useState('1');
+  const [fixedPaymentDay, setFixedPaymentDay] = useState('');
   
   const [showClientPicker, setShowClientPicker] = useState(false);
   const [clientSearch, setClientSearch] = useState('');
@@ -100,20 +101,40 @@ export default function NewSale() {
       const installmentValue = total / installmentsNum;
       const now = new Date();
       
-      for (let i = 1; i <= installmentsNum; i++) {
-        const dueDate = new Date(now);
-        dueDate.setDate(dueDate.getDate() + (30 * i));
+      if (fixedPaymentDay && parseInt(fixedPaymentDay) > 0 && parseInt(fixedPaymentDay) <= 31) {
+        const paymentDay = parseInt(fixedPaymentDay);
         
-        addInvoice({
-          description: `Parc. ${i}/${installmentsNum} - ${clientName}`,
-          value: installmentValue,
-          dueDate: dueDate.toISOString().split('T')[0],
-          status: 'pending',
-          saleId: saleId,
-          clientId: selectedClient.id,
-        });
+        for (let i = 1; i <= installmentsNum; i++) {
+          const dueDate = new Date(now);
+          dueDate.setMonth(dueDate.getMonth() + (i - 1));
+          dueDate.setDate(Math.min(paymentDay, new Date(dueDate.getFullYear(), dueDate.getMonth() + 1, 0).getDate()));
+          
+          addInvoice({
+            description: `Parc. ${i}/${installmentsNum} - ${clientName}`,
+            value: installmentValue,
+            dueDate: dueDate.toISOString().split('T')[0],
+            status: 'pending',
+            saleId: saleId,
+            clientId: selectedClient.id,
+          });
+        }
+        Alert.alert('Sucesso', `Venda finalizada! Foram geradas ${installmentsNum} faturas para dia ${paymentDay} de cada mês.`);
+      } else {
+        for (let i = 1; i <= installmentsNum; i++) {
+          const dueDate = new Date(now);
+          dueDate.setMonth(dueDate.getMonth() + (i - 1));
+          
+          addInvoice({
+            description: `Parc. ${i}/${installmentsNum} - ${clientName}`,
+            value: installmentValue,
+            dueDate: dueDate.toISOString().split('T')[0],
+            status: 'pending',
+            saleId: saleId,
+            clientId: selectedClient.id,
+          });
+        }
+        Alert.alert('Sucesso', `Venda finalizada! Foram geradas ${installmentsNum} faturas para ${clientName}.`);
       }
-      Alert.alert('Sucesso', `Venda finalizada! Foram geradas ${installmentsNum} faturas para ${clientName}.`);
     } else {
       Alert.alert('Sucesso', 'Venda à vista finalizada!');
     }
@@ -204,6 +225,20 @@ export default function NewSale() {
                   placeholderTextColor="#999"
                 />
               </View>
+              
+              <Text style={[styles.label, { marginTop: 12 }]}>Dia de Pagamento (fixo) - Opcional</Text>
+              <View style={styles.inputContainer}>
+                <TextInput
+                  style={styles.input}
+                  placeholder="Ex: 10 (todo dia 10)"
+                  keyboardType="numeric"
+                  value={fixedPaymentDay}
+                  onChangeText={setFixedPaymentDay}
+                  maxLength={2}
+                  placeholderTextColor="#999"
+                />
+              </View>
+              <Text style={styles.hintText}>Se informado, todas as parcelas vencerão neste dia do mês. Ex: dia 10 = 10/01, 10/02, 10/03...</Text>
               <Text style={styles.hintText}>O sistema gerará faturas para controle de recebimento (Fiado ou Cartão).</Text>
             </View>
           )}

@@ -24,6 +24,7 @@ export default function AccountsReceivable() {
   const [uploading, setUploading] = useState(false);
   const [isInstallment, setIsInstallment] = useState(false);
   const [installments, setInstallments] = useState('1');
+  const [fixedPaymentDay, setFixedPaymentDay] = useState('');
 
   const tabs = ['Todas', 'Recebido', 'Pendente'];
   const filteredAccounts = selectedTab === 'Todas' ? (accountsReceivable || []) : (accountsReceivable || []).filter(a => a.status === selectedTab);
@@ -86,17 +87,24 @@ export default function AccountsReceivable() {
       return;
     }
 
+    if (isInstallment && (!fixedPaymentDay.trim() || parseInt(fixedPaymentDay) < 1 || parseInt(fixedPaymentDay) > 31)) {
+      Alert.alert('Erro', 'Informe um dia válido de pagamento (1-31).');
+      return;
+    }
+
     const amountNum = currencyToNumber(amount);
     
     if (isInstallment && installments && parseInt(installments) > 1) {
       const installmentsNum = parseInt(installments);
       const installmentValue = amountNum / installmentsNum;
+      const paymentDay = parseInt(fixedPaymentDay);
       const dateParts = date.split('/');
       const baseDate = new Date(dateParts[2], dateParts[1] - 1, dateParts[0]);
       
       for (let i = 1; i <= installmentsNum; i++) {
         const dueDate = new Date(baseDate);
         dueDate.setMonth(dueDate.getMonth() + (i - 1));
+        dueDate.setDate(Math.min(paymentDay, new Date(dueDate.getFullYear(), dueDate.getMonth() + 1, 0).getDate()));
         
         const formattedDate = `${String(dueDate.getDate()).padStart(2, '0')}/${String(dueDate.getMonth() + 1).padStart(2, '0')}/${dueDate.getFullYear()}`;
         
@@ -107,11 +115,21 @@ export default function AccountsReceivable() {
           status,
           installmentNumber: i,
           totalInstallments: installmentsNum,
+          dueDate: dueDate.toISOString(),
         });
       }
-      Alert.alert('Sucesso', `${installmentsNum} parcelas adicionadas.`);
+      Alert.alert('Sucesso', `${installmentsNum} parcelas adicionadas para dia ${paymentDay} de cada mês.`);
     } else {
-      await addAccountReceivable({ date: date.trim(), description: description.trim(), amount: amountNum, status });
+      const dateParts = date.split('/');
+      const accountDate = new Date(dateParts[2], dateParts[1] - 1, dateParts[0]);
+      
+      await addAccountReceivable({ 
+        date: date.trim(), 
+        description: description.trim(), 
+        amount: amountNum, 
+        status,
+        dueDate: accountDate.toISOString(),
+      });
       Alert.alert('Sucesso', 'Conta adicionada.');
     }
     
@@ -121,6 +139,7 @@ export default function AccountsReceivable() {
     setAmount('');
     setIsInstallment(false);
     setInstallments('1');
+    setFixedPaymentDay('');
   };
 
   return (
@@ -159,7 +178,9 @@ export default function AccountsReceivable() {
             <View style={styles.accountHeader}>
               <View style={styles.accountDate}>
                 <Icon name="calendar-outline" size={16} color={theme.colors.textLight} />
-                <Text style={styles.accountDateText}>{account.date}</Text>
+                <Text style={styles.accountDateText}>
+                  {account.date || (account.dueDate ? new Date(account.dueDate).toLocaleDateString('pt-BR') : 'Sem data')}
+                </Text>
               </View>
               <View style={[styles.statusBadge, { backgroundColor: getStatusColor(account.status) + '20' }]}>
                 <Text style={[styles.statusText, { color: getStatusColor(account.status) }]}>
@@ -242,6 +263,19 @@ export default function AccountsReceivable() {
                       {installments}x de R$ {(currencyToNumber(amount) / parseInt(installments)).toFixed(2)}
                     </Text>
                   )}
+                  
+                  <Text style={[styles.installmentLabel, { marginTop: 12 }]}>Dia de Pagamento (fixo):</Text>
+                  <TextInput
+                    style={styles.installmentInput}
+                    placeholder="Ex: 10 (todo dia 10)"
+                    keyboardType="numeric"
+                    value={fixedPaymentDay}
+                    onChangeText={setFixedPaymentDay}
+                    maxLength={2}
+                  />
+                  <Text style={styles.installmentHint}>
+                    Todas as parcelas vencerão neste dia do mês
+                  </Text>
                 </View>
               )}
               
@@ -545,6 +579,13 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: theme.colors.primary,
     fontWeight: 'bold',
+    textAlign: 'center',
+  },
+  installmentHint: {
+    fontSize: 11,
+    color: theme.colors.textLight,
+    fontStyle: 'italic',
+    marginTop: 4,
     textAlign: 'center',
   },
   modalActions: {
