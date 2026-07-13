@@ -22,6 +22,8 @@ export default function AccountsReceivable() {
   const [status, setStatus] = useState('Pendente');
   const [receiptUrl, setReceiptUrl] = useState('');
   const [uploading, setUploading] = useState(false);
+  const [isInstallment, setIsInstallment] = useState(false);
+  const [installments, setInstallments] = useState('1');
 
   const tabs = ['Todas', 'Recebido', 'Pendente'];
   const filteredAccounts = selectedTab === 'Todas' ? (accountsReceivable || []) : (accountsReceivable || []).filter(a => a.status === selectedTab);
@@ -83,12 +85,42 @@ export default function AccountsReceivable() {
       Alert.alert('Erro', 'Preencha todos os campos da conta.');
       return;
     }
-    await addAccountReceivable({ date: date.trim(), description: description.trim(), amount: currencyToNumber(amount), status });
+
+    const amountNum = currencyToNumber(amount);
+    
+    if (isInstallment && installments && parseInt(installments) > 1) {
+      const installmentsNum = parseInt(installments);
+      const installmentValue = amountNum / installmentsNum;
+      const dateParts = date.split('/');
+      const baseDate = new Date(dateParts[2], dateParts[1] - 1, dateParts[0]);
+      
+      for (let i = 1; i <= installmentsNum; i++) {
+        const dueDate = new Date(baseDate);
+        dueDate.setMonth(dueDate.getMonth() + (i - 1));
+        
+        const formattedDate = `${String(dueDate.getDate()).padStart(2, '0')}/${String(dueDate.getMonth() + 1).padStart(2, '0')}/${dueDate.getFullYear()}`;
+        
+        await addAccountReceivable({
+          date: formattedDate,
+          description: `${description} (Parc. ${i}/${installmentsNum})`,
+          amount: installmentValue,
+          status,
+          installmentNumber: i,
+          totalInstallments: installmentsNum,
+        });
+      }
+      Alert.alert('Sucesso', `${installmentsNum} parcelas adicionadas.`);
+    } else {
+      await addAccountReceivable({ date: date.trim(), description: description.trim(), amount: amountNum, status });
+      Alert.alert('Sucesso', 'Conta adicionada.');
+    }
+    
     setShowModal(false);
     setDate('');
     setDescription('');
     setAmount('');
-    Alert.alert('Sucesso', 'Conta adicionada.');
+    setIsInstallment(false);
+    setInstallments('1');
   };
 
   return (
@@ -166,11 +198,45 @@ export default function AccountsReceivable() {
             <TextInput style={styles.input} placeholder="Descrição" value={description} onChangeText={setDescription} />
             <TextInput 
               style={styles.input} 
-              placeholder="Valor" 
+              placeholder="Valor Total" 
               value={amount} 
               onChangeText={(text) => setAmount(maskCurrency(text))}
               keyboardType="numeric"
             />
+            
+            <View style={styles.installmentToggleContainer}>
+              <TouchableOpacity 
+                style={[styles.installmentToggle, !isInstallment && styles.installmentToggleActive]} 
+                onPress={() => setIsInstallment(false)}
+              >
+                <Text style={[styles.installmentToggleText, !isInstallment && styles.installmentToggleTextActive]}>Pagamento Único</Text>
+              </TouchableOpacity>
+              <TouchableOpacity 
+                style={[styles.installmentToggle, isInstallment && styles.installmentToggleActive]} 
+                onPress={() => setIsInstallment(true)}
+              >
+                <Text style={[styles.installmentToggleText, isInstallment && styles.installmentToggleTextActive]}>Parcelado</Text>
+              </TouchableOpacity>
+            </View>
+            
+            {isInstallment && (
+              <View style={styles.installmentInputContainer}>
+                <Text style={styles.installmentLabel}>Número de Parcelas:</Text>
+                <TextInput
+                  style={styles.installmentInput}
+                  placeholder="Ex: 3"
+                  keyboardType="numeric"
+                  value={installments}
+                  onChangeText={setInstallments}
+                />
+                {amount && installments && parseInt(installments) > 0 && (
+                  <Text style={styles.installmentPreview}>
+                    {installments}x de R$ {(currencyToNumber(amount) / parseInt(installments)).toFixed(2)}
+                  </Text>
+                )}
+              </View>
+            )}
+            
             <View style={styles.statusSelector}>
               {['Recebido', 'Pendente'].map((s) => (
                 <TouchableOpacity key={s} style={[styles.statusOption, status === s && styles.selectedStatus]} onPress={() => setStatus(s)}>
@@ -404,6 +470,60 @@ const styles = StyleSheet.create({
   },
   selectedStatusText: {
     color: '#fff',
+  },
+  installmentToggleContainer: {
+    flexDirection: 'row',
+    backgroundColor: '#E8ECEF',
+    borderRadius: 10,
+    padding: 4,
+    marginBottom: 10,
+  },
+  installmentToggle: {
+    flex: 1,
+    paddingVertical: 10,
+    alignItems: 'center',
+    borderRadius: 8,
+  },
+  installmentToggleActive: {
+    backgroundColor: '#fff',
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+  },
+  installmentToggleText: { fontSize: 14, fontWeight: 'bold', color: theme.colors.textLight },
+  installmentToggleTextActive: { color: theme.colors.primary },
+  installmentInputContainer: {
+    marginBottom: 10,
+    padding: 12,
+    backgroundColor: '#F5F7FA',
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: theme.colors.border,
+  },
+  installmentLabel: {
+    fontSize: 14,
+    color: theme.colors.text,
+    marginBottom: 8,
+    fontWeight: '600',
+  },
+  installmentInput: {
+    borderWidth: 1,
+    borderColor: theme.colors.border,
+    borderRadius: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    fontSize: 16,
+    backgroundColor: '#fff',
+    color: theme.colors.text,
+    marginBottom: 8,
+  },
+  installmentPreview: {
+    fontSize: 13,
+    color: theme.colors.primary,
+    fontWeight: 'bold',
+    textAlign: 'center',
   },
   modalActions: {
     flexDirection: 'row',
