@@ -93,6 +93,7 @@ export default function NewSale() {
       receiptUri: receipt ? receipt.uri : null,
       paymentType,
       installments: paymentType === 'prazo' ? installmentsNum : 1,
+      fixedPaymentDay: paymentType === 'prazo' ? fixedPaymentDay : null,
     };
 
     addSale(sale);
@@ -239,6 +240,31 @@ export default function NewSale() {
                 />
               </View>
               <Text style={styles.hintText}>Se informado, todas as parcelas vencerão neste dia do mês. Ex: dia 10 = 10/01, 10/02, 10/03...</Text>
+              
+              {fixedPaymentDay && installments && parseInt(installments) > 0 && (
+                <View style={styles.installmentPreviewContainer}>
+                  <Text style={styles.installmentPreviewTitle}>Previsão de vencimentos:</Text>
+                  {(() => {
+                    const paymentDay = parseInt(fixedPaymentDay);
+                    const now = new Date();
+                    const installmentsNum = parseInt(installments);
+                    const dates = [];
+                    
+                    for (let i = 1; i <= installmentsNum; i++) {
+                      const dueDate = new Date(now);
+                      dueDate.setMonth(dueDate.getMonth() + (i - 1));
+                      dueDate.setDate(Math.min(paymentDay, new Date(dueDate.getFullYear(), dueDate.getMonth() + 1, 0).getDate()));
+                      const formattedDate = `${String(dueDate.getDate()).padStart(2, '0')}/${String(dueDate.getMonth() + 1).padStart(2, '0')}/${dueDate.getFullYear()}`;
+                      dates.push(`Parc. ${i}: ${formattedDate}`);
+                    }
+                    
+                    return dates.map((d, idx) => (
+                      <Text key={idx} style={styles.installmentPreviewItem}>{d}</Text>
+                    ));
+                  })()}
+                </View>
+              )}
+              
               <Text style={styles.hintText}>O sistema gerará faturas para controle de recebimento (Fiado ou Cartão).</Text>
             </View>
           )}
@@ -490,6 +516,25 @@ const styles = StyleSheet.create({
   paymentToggleText: { fontSize: 14, fontWeight: 'bold', color: theme.colors.textLight },
   paymentToggleTextActive: { color: theme.colors.primary },
   hintText: { fontSize: 12, color: theme.colors.textLight, marginTop: 6, fontStyle: 'italic' },
+  installmentPreviewContainer: {
+    marginTop: 12,
+    padding: 10,
+    backgroundColor: '#F0F4F8',
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: theme.colors.border,
+  },
+  installmentPreviewTitle: {
+    fontSize: 12,
+    fontWeight: 'bold',
+    color: theme.colors.text,
+    marginBottom: 6,
+  },
+  installmentPreviewItem: {
+    fontSize: 11,
+    color: theme.colors.textLight,
+    marginBottom: 2,
+  },
   // Date
   dateContainer: {
     flexDirection: 'row',

@@ -384,26 +384,53 @@ export const AppProvider = ({ children }) => {
       const installmentValue = sale.total / sale.installments;
       const now = new Date();
       
-      for (let i = 1; i <= sale.installments; i++) {
-        const dueDate = new Date(now);
-        dueDate.setMonth(dueDate.getMonth() + (i - 1));
+      if (sale.fixedPaymentDay && parseInt(sale.fixedPaymentDay) > 0 && parseInt(sale.fixedPaymentDay) <= 31) {
+        const paymentDay = parseInt(sale.fixedPaymentDay);
         
-        const formattedDate = `${String(dueDate.getDate()).padStart(2, '0')}/${String(dueDate.getMonth() + 1).padStart(2, '0')}/${dueDate.getFullYear()}`;
-        
-        await addDoc(collection(db, 'accountsReceivable'), {
-          saleId: saleRef.id,
-          clientName: sale.clientName,
-          clientId: sale.clientId,
-          amount: installmentValue,
-          date: formattedDate,
-          dueDate: dueDate.toISOString(),
-          status: 'Pendente',
-          description: `Parc. ${i}/${sale.installments} - Venda #${saleRef.id}`,
-          installmentNumber: i,
-          totalInstallments: sale.installments,
-          createdAt: new Date().toISOString(),
-          userId: currentUser.uid,
-        });
+        for (let i = 1; i <= sale.installments; i++) {
+          const dueDate = new Date(now);
+          dueDate.setMonth(dueDate.getMonth() + (i - 1));
+          dueDate.setDate(Math.min(paymentDay, new Date(dueDate.getFullYear(), dueDate.getMonth() + 1, 0).getDate()));
+          
+          const formattedDate = `${String(dueDate.getDate()).padStart(2, '0')}/${String(dueDate.getMonth() + 1).padStart(2, '0')}/${dueDate.getFullYear()}`;
+          
+          await addDoc(collection(db, 'accountsReceivable'), {
+            saleId: saleRef.id,
+            clientName: sale.clientName,
+            clientId: sale.clientId,
+            amount: installmentValue,
+            date: formattedDate,
+            dueDate: dueDate.toISOString(),
+            status: 'Pendente',
+            description: `Parc. ${i}/${sale.installments} - Venda #${saleRef.id}`,
+            installmentNumber: i,
+            totalInstallments: sale.installments,
+            createdAt: new Date().toISOString(),
+            userId: currentUser.uid,
+          });
+        }
+      } else {
+        for (let i = 1; i <= sale.installments; i++) {
+          const dueDate = new Date(now);
+          dueDate.setMonth(dueDate.getMonth() + (i - 1));
+          
+          const formattedDate = `${String(dueDate.getDate()).padStart(2, '0')}/${String(dueDate.getMonth() + 1).padStart(2, '0')}/${dueDate.getFullYear()}`;
+          
+          await addDoc(collection(db, 'accountsReceivable'), {
+            saleId: saleRef.id,
+            clientName: sale.clientName,
+            clientId: sale.clientId,
+            amount: installmentValue,
+            date: formattedDate,
+            dueDate: dueDate.toISOString(),
+            status: 'Pendente',
+            description: `Parc. ${i}/${sale.installments} - Venda #${saleRef.id}`,
+            installmentNumber: i,
+            totalInstallments: sale.installments,
+            createdAt: new Date().toISOString(),
+            userId: currentUser.uid,
+          });
+        }
       }
     } else {
       // Single payment - create one accounts receivable entry
