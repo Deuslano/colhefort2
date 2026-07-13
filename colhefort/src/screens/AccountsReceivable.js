@@ -187,67 +187,69 @@ export default function AccountsReceivable() {
       <Modal visible={showModal} transparent animationType="fade">
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>Nova conta a receber</Text>
-            <TextInput 
-              style={styles.input} 
-              placeholder="Data" 
-              value={date} 
-              onChangeText={(text) => setDate(maskDate(text))}
-              maxLength={10}
-            />
-            <TextInput style={styles.input} placeholder="Descrição" value={description} onChangeText={setDescription} />
-            <TextInput 
-              style={styles.input} 
-              placeholder="Valor Total" 
-              value={amount} 
-              onChangeText={(text) => setAmount(maskCurrency(text))}
-              keyboardType="numeric"
-            />
-            
-            <View style={styles.installmentToggleContainer}>
-              <TouchableOpacity 
-                style={[styles.installmentToggle, !isInstallment && styles.installmentToggleActive]} 
-                onPress={() => setIsInstallment(false)}
-              >
-                <Text style={[styles.installmentToggleText, !isInstallment && styles.installmentToggleTextActive]}>Pagamento Único</Text>
-              </TouchableOpacity>
-              <TouchableOpacity 
-                style={[styles.installmentToggle, isInstallment && styles.installmentToggleActive]} 
-                onPress={() => setIsInstallment(true)}
-              >
-                <Text style={[styles.installmentToggleText, isInstallment && styles.installmentToggleTextActive]}>Parcelado</Text>
-              </TouchableOpacity>
-            </View>
-            
-            {isInstallment && (
-              <View style={styles.installmentInputContainer}>
-                <Text style={styles.installmentLabel}>Número de Parcelas:</Text>
-                <TextInput
-                  style={styles.installmentInput}
-                  placeholder="Ex: 3"
-                  keyboardType="numeric"
-                  value={installments}
-                  onChangeText={setInstallments}
-                />
-                {amount && installments && parseInt(installments) > 0 && (
-                  <Text style={styles.installmentPreview}>
-                    {installments}x de R$ {(currencyToNumber(amount) / parseInt(installments)).toFixed(2)}
-                  </Text>
-                )}
-              </View>
-            )}
-            
-            <View style={styles.statusSelector}>
-              {['Recebido', 'Pendente'].map((s) => (
-                <TouchableOpacity key={s} style={[styles.statusOption, status === s && styles.selectedStatus]} onPress={() => setStatus(s)}>
-                  <Text style={[styles.statusOptionText, status === s && styles.selectedStatusText]}>{s}</Text>
+            <ScrollView showsVerticalScrollIndicator={false}>
+              <Text style={styles.modalTitle}>Nova conta a receber</Text>
+              <TextInput 
+                style={styles.input} 
+                placeholder="Data" 
+                value={date} 
+                onChangeText={(text) => setDate(maskDate(text))}
+                maxLength={10}
+              />
+              <TextInput style={styles.input} placeholder="Descrição" value={description} onChangeText={setDescription} />
+              <TextInput 
+                style={styles.input} 
+                placeholder="Valor Total" 
+                value={amount} 
+                onChangeText={(text) => setAmount(maskCurrency(text))}
+                keyboardType="numeric"
+              />
+              
+              <View style={styles.installmentToggleContainer}>
+                <TouchableOpacity 
+                  style={[styles.installmentToggle, !isInstallment && styles.installmentToggleActive]} 
+                  onPress={() => setIsInstallment(false)}
+                >
+                  <Text style={[styles.installmentToggleText, !isInstallment && styles.installmentToggleTextActive]}>Pagamento Único</Text>
                 </TouchableOpacity>
-              ))}
-            </View>
-            <View style={styles.modalActions}>
-              <TouchableOpacity style={styles.cancelButton} onPress={() => setShowModal(false)}><Text style={styles.cancelText}>Cancelar</Text></TouchableOpacity>
-              <TouchableOpacity style={styles.saveButton} onPress={handleAddAccount}><Text style={styles.saveText}>Salvar</Text></TouchableOpacity>
-            </View>
+                <TouchableOpacity 
+                  style={[styles.installmentToggle, isInstallment && styles.installmentToggleActive]} 
+                  onPress={() => setIsInstallment(true)}
+                >
+                  <Text style={[styles.installmentToggleText, isInstallment && styles.installmentToggleTextActive]}>Parcelado</Text>
+                </TouchableOpacity>
+              </View>
+              
+              {isInstallment && (
+                <View style={styles.installmentInputContainer}>
+                  <Text style={styles.installmentLabel}>Número de Parcelas:</Text>
+                  <TextInput
+                    style={styles.installmentInput}
+                    placeholder="Ex: 3"
+                    keyboardType="numeric"
+                    value={installments}
+                    onChangeText={setInstallments}
+                  />
+                  {amount && installments && parseInt(installments) > 0 && (
+                    <Text style={styles.installmentPreview}>
+                      {installments}x de R$ {(currencyToNumber(amount) / parseInt(installments)).toFixed(2)}
+                    </Text>
+                  )}
+                </View>
+              )}
+              
+              <View style={styles.statusSelector}>
+                {['Recebido', 'Pendente'].map((s) => (
+                  <TouchableOpacity key={s} style={[styles.statusOption, status === s && styles.selectedStatus]} onPress={() => setStatus(s)}>
+                    <Text style={[styles.statusOptionText, status === s && styles.selectedStatusText]}>{s}</Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+              <View style={styles.modalActions}>
+                <TouchableOpacity style={styles.cancelButton} onPress={() => setShowModal(false)}><Text style={styles.cancelText}>Cancelar</Text></TouchableOpacity>
+                <TouchableOpacity style={styles.saveButton} onPress={handleAddAccount}><Text style={styles.saveText}>Salvar</Text></TouchableOpacity>
+              </View>
+            </ScrollView>
           </View>
         </View>
       </Modal>
@@ -429,6 +431,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
     borderRadius: 16,
     padding: 20,
+    maxHeight: '90%',
   },
   modalTitle: {
     fontSize: 18,
